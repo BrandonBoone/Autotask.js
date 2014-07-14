@@ -4,8 +4,8 @@ A library that wraps the [Autotask SOAL API](https://www.autotask.net/help/conte
 
 ##Console driver configuration
 
-1. Install the node.js runtime: http://nodejs.org/
-1. Install grunt-cli: (terminal/console) npm install -g grunt-cli
-1. Clone the repositiory to your computer. 
-1. Navigate to the autotask.js directory: (terminal/console) npm install
-1. In the same directory: grunt dev
+1. Install the [node.js](http://nodejs.org/) runtime
+1. Install [grunt-cli](http://gruntjs.com/getting-started): (terminal/console) `npm install -g grunt-cli`
+1. Clone this repositiory to your computer. 
+1. In the terminal/console, navigate to the repository directory and type `npm install`
+1. In the same directory type `grunt dev`
