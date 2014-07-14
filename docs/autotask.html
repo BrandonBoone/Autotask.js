@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Autotask.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="autotask-js">Autotask.js</h1>
+<p>JavaScript wrapper for the autotask SOAP API. </p>
+<h2 id="current-implementation">Current Implementation</h2>
+<ul>
+<li>Allow the user to enter time related to projects</li>
+<li>Allow the user to query any of the autotask objects. (conditions are not currently implemented)</li>
+</ul>
+<h2 id="up-next">Up Next</h2>
+<ul>
+<li>Allow the user to enter time against general tasks. </li>
+</ul>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>For making SOAP requests to Autotask</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> soap = <span class="hljs-built_in">require</span>(<span class="hljs-string">'soap'</span>),</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Promise/A+ implementation. See: <a href="http://promises-aplus.github.io/promises-spec/">http://promises-aplus.github.io/promises-spec/</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	when = <span class="hljs-built_in">require</span>(<span class="hljs-string">'when'</span>),</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>For converting an Object Literal into a Autotask Query XML.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	handlebars = <span class="hljs-built_in">require</span>(<span class="hljs-string">'handlebars'</span>),</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>The pre-complied handlebars templates.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>	templates = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./templates'</span>)(handlebars);
+
+
+<span class="hljs-keyword">var</span> m_client;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Must be called first in order to use any other methods</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports.connect = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url, username, password)</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		soap.createClient(url, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, client)</span> </span>{
+			m_client = client; 
+			m_client.setSecurity(<span class="hljs-keyword">new</span> soap.BasicAuthSecurity(username, password));
+			<span class="hljs-keyword">if</span>(err){
+				reject(err);
+			}<span class="hljs-keyword">else</span>{
+				resolve(m_client);	
+			}
+		});
+	});
+};
+
+<span class="hljs-built_in">module</span>.exports.getAccounts = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(accountName)</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		Account: [
+			{
+				AccountName: {
+					equals: accountName
+				}
+			}
+		]
+	}); 
+}; 
+
+<span class="hljs-built_in">module</span>.exports.getProjects = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(accountId, beginswith)</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		Project: [
+			{
+				AccountID: {
+					equals: accountId
+				}
+			}, {
+				CompletedPercentage: {
+					lessthan: <span class="hljs-number">100</span>
+				}
+			}, {
+				ProjectName: {
+					beginswith: beginswith
+				}
+			}
+		]
+	}); 
+}; 
+
+<span class="hljs-built_in">module</span>.exports.getResources = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(username)</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		Resource:[{
+			Email: {
+				equals:username
+			}
+		}]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getRoles = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		Role:[{
+			id: {
+				isnotnull:<span class="hljs-string">''</span>
+			}
+		}]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getResourceRole = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resourceId)</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		ResourceRole:[{
+			ResourceID: {
+				isnotnull:resourceId
+			}
+		}]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getThresholdAndUsageInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		m_client.ATWS.ATWSSoap.getThresholdAndUsageInfo({}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(result.getThresholdAndUsageInfoResult.EntityReturnInfoResults.EntityReturnInfo[<span class="hljs-number">0</span>].Message);	
+				}
+			}
+		);
+	});
+};
+
+<span class="hljs-built_in">module</span>.exports.getAllocationCodes = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		AllocationCode: [
+			{
+				id: {
+					IsNotNull: <span class="hljs-string">''</span>
+				}
+			}
+		]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getDepartments = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		Department: [
+			{
+				id: {
+					IsNotNull: <span class="hljs-string">''</span>
+				}
+			}
+		]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getTasks = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(projectId)</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, {
+		Task: [
+			{
+				ProjectID: {
+					equals: projectId
+				}
+			}
+		]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getTimeEntries = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resourceId)</span></span>{
+
+	<span class="hljs-keyword">var</span> curr = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(); <span class="hljs-comment">// get current date</span>
+	<span class="hljs-keyword">var</span> first = curr.getDate() - curr.getDay(); <span class="hljs-comment">// First day is the day of the month - the day of the week</span>
+	<span class="hljs-keyword">var</span> last = first + <span class="hljs-number">7</span>; <span class="hljs-comment">// last day is the first day + 6 (+7 since using 0000 time)</span>
+
+	<span class="hljs-keyword">var</span> firstday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(first)));
+	<span class="hljs-keyword">var</span> lastday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(last)));
+	<span class="hljs-built_in">console</span>.log(firstday);
+	<span class="hljs-built_in">console</span>.log(lastday);
+
+
+	<span class="hljs-keyword">return</span> query(m_client, {
+		TimeEntry: [
+			{
+				Type: {
+					equals: <span class="hljs-number">6</span>
+				},
+				ResourceID: {
+					equals: resourceId
+				},
+				DateWorked:{
+					greaterthan: <span class="hljs-string">'2014-01-01'</span>, 
+					lessthanorequals: lastday
+				}
+			}
+		]
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getFieldInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(fieldName)</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		m_client.ATWS.ATWSSoap.GetFieldInfo(
+			{
+				psObjectType: fieldName
+			}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
+
+
+<span class="hljs-built_in">module</span>.exports.createTimeEntry = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resourceId, roleId, time, comment, taskId)</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		m_client.ATWS.ATWSSoap.create(
+			{
+				Entities: [{
+					Entity:{
+						attributes:{
+							<span class="hljs-string">'xsi:type'</span>:<span class="hljs-string">'TimeEntry'</span>
+						},
+						TaskID: taskId, 
+						DateWorked: formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>()),
+						ResourceID: resourceId,
+						RoleID: <span class="hljs-number">29683475</span>, <span class="hljs-comment">//Develper</span>
+						Type: <span class="hljs-number">6</span>, 
+						HoursWorked: time, 
+						SummaryNotes: comment,
+						AllocationCodeID: <span class="hljs-number">30776677</span>,<span class="hljs-comment">// Development Billable</span>
+						InternalAllocationCodeID: <span class="hljs-number">30776677</span>
+					
+					}
+				}]
+			}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.query = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(obj)</span></span>{
+	<span class="hljs-keyword">return</span> query(m_client, obj);
+};
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">query</span><span class="hljs-params">(client, obj)</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		client.ATWS.ATWSSoap.query({
+				sXML: templates[<span class="hljs-string">"templates/query.hbr"</span>](obj)
+			}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(convert(result));	
+				}
+			}
+		);
+	}); 
+}
+
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">formatDate</span><span class="hljs-params">(date)</span></span>{
+	<span class="hljs-keyword">var</span> hr = date.getHours(),
+		min = date.getMinutes(),
+		secs = date.getSeconds(),
+		milSecs = date.getMilliseconds();
+
+	<span class="hljs-keyword">return</span> date.getFullYear() + <span class="hljs-string">"-"</span> + 
+			padZero(date.getMonth() + <span class="hljs-number">1</span>) + <span class="hljs-string">"-"</span> + 
+			padZero(date.getDate()) + <span class="hljs-string">'T'</span> + 
+			padZero(hr) +<span class="hljs-string">':'</span>+ 
+			padZero(min) + <span class="hljs-string">':'</span> + 
+			padZero(secs) + <span class="hljs-string">'.'</span> + 
+			padMiliSesc(milSecs) + <span class="hljs-string">'Z'</span>;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">padZero</span><span class="hljs-params">(num)</span></span>{
+	<span class="hljs-keyword">return</span> <span class="hljs-built_in">parseInt</span>(num, <span class="hljs-number">10</span>) &lt; <span class="hljs-number">10</span> ? <span class="hljs-string">"0"</span> + num : num; 
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">padMiliSesc</span><span class="hljs-params">(num)</span></span>{
+	<span class="hljs-keyword">var</span> returnVal = <span class="hljs-string">""</span>; 
+	num = <span class="hljs-built_in">parseInt</span>(num, <span class="hljs-number">10</span>);
+	<span class="hljs-keyword">if</span>(num &lt; <span class="hljs-number">100</span>){
+		returnVal += <span class="hljs-string">"0"</span>;
+	}
+
+	<span class="hljs-keyword">if</span>(num &lt; <span class="hljs-number">10</span>){
+		returnVal += <span class="hljs-string">"0"</span>;
+	}
+
+	returnVal += num; 
+	<span class="hljs-keyword">return</span> returnVal; 
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">convert</span><span class="hljs-params">(result)</span></span>{
+	<span class="hljs-keyword">var</span> data, results = [], i = <span class="hljs-number">0</span>, l = <span class="hljs-number">0</span>; 
+	data = result.queryResult.EntityResults.Entity;
+	
+	<span class="hljs-keyword">if</span>(!data){ <span class="hljs-keyword">return</span> results; }
+
+	<span class="hljs-keyword">for</span>(i = <span class="hljs-number">0</span>, l = data.length; i &lt; l; i++){
+		results.push(flatten(data[i])); 
+	}
+	<span class="hljs-keyword">return</span> results; 
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">flatten</span><span class="hljs-params">(obj)</span></span>{
+	<span class="hljs-keyword">var</span> newObj = {}, key, tmp; 
+	<span class="hljs-keyword">for</span>(key <span class="hljs-keyword">in</span> obj){
+		tmp = obj[key];
+		<span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> tmp === <span class="hljs-string">'string'</span>){
+			newObj[key] = tmp; 
+		}<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(tmp.$value){
+			<span class="hljs-keyword">if</span>(tmp.attributes){
+				<span class="hljs-keyword">switch</span>(tmp.attributes[<span class="hljs-string">'xsi:type'</span>]){
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'xsd:boolean'</span>:
+						newObj[key] = <span class="hljs-built_in">Boolean</span>(tmp.$value);
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'xsd:int'</span>:
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'xsd:decimal'</span>:
+						newObj[key] = <span class="hljs-built_in">parseFloat</span>(tmp.$value);
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">case</span> <span class="hljs-string">'xsd:dateTime'</span>:
+						newObj[key] = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(tmp.$value);
+						<span class="hljs-keyword">break</span>;
+					<span class="hljs-keyword">default</span>:
+						newObj[key] = tmp.$value;
+						<span class="hljs-keyword">break</span>;
+				}
+			}<span class="hljs-keyword">else</span>{
+				newObj[key] = tmp.$value;
+			}
+		}
+	}
+	<span class="hljs-keyword">return</span> newObj;
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

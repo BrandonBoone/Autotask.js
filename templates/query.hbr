@@ -1,0 +1,17 @@
+<queryxml version="1.0">
+	{{~#each this ~}} {{!Entity}}
+		<entity>{{@key}}</entity><query>
+		{{~#each this ~}}{{!Array of fields}}
+			<field>
+			{{~#each this ~}}{{!Field Name}}
+			{{~@key~}}
+				{{~#each this ~}}{{!expression}}
+				<expression op="{{@key}}">{{this}}</expression>
+				{{~/each ~}}
+			{{~/each ~}}
+			</field>
+		{{~/each ~}}
+		</query>
+	{{~/each ~}}
+</queryxml> 
+
