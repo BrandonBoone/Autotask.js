@@ -1,8 +1,8 @@
 #Autotask.js
 
-A library that wraps the [Autotask SOAL API](https://www.autotask.net/help/content/Userguides/T_WebServicesAPIv1_5.pdf) in javascript using [when.js](https://github.com/cujojs/when) and node [soap](https://www.npmjs.org/package/soap). 
+A library that wraps the [Autotask SOAP API](https://www.autotask.net/help/content/Userguides/T_WebServicesAPIv1_5.pdf) in javascript using [when.js](https://github.com/cujojs/when) and node [soap](https://www.npmjs.org/package/soap). 
 
-##Console driver configuration
+###Console driver configuration
 
 1. Install the [node.js](http://nodejs.org/) runtime
 1. Install [grunt-cli](http://gruntjs.com/getting-started): (terminal/console) `npm install -g grunt-cli`
