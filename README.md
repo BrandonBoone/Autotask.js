@@ -1,6 +1,6 @@
-#autotask.js
+#Autotask.js
 
-A library that wraps the [Autotask SOAL API](https://www.autotask.net/help/content/Userguides/T_WebServicesAPIv1_5.pdf). 
+A library that wraps the [Autotask SOAL API](https://www.autotask.net/help/content/Userguides/T_WebServicesAPIv1_5.pdf) in javascript using [when.js](https://github.com/cujojs/when). 
 
 ##Console driver configuration
 
