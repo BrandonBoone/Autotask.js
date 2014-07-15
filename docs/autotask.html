@@ -243,10 +243,23 @@
 	<span class="hljs-keyword">var</span> last = first + <span class="hljs-number">7</span>; <span class="hljs-comment">// last day is the first day + 6 (+7 since using 0000 time)</span>
 
 	<span class="hljs-keyword">var</span> firstday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(first)));
-	<span class="hljs-keyword">var</span> lastday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(last)));
-	<span class="hljs-built_in">console</span>.log(firstday);
-	<span class="hljs-built_in">console</span>.log(lastday);
+	<span class="hljs-keyword">var</span> lastday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(last)));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>console.log(firstday);
+console.log(lastday);</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
 
 	<span class="hljs-keyword">return</span> query(m_client, {
 		TimeEntry: [
@@ -258,7 +271,7 @@
 					equals: resourceId
 				},
 				DateWorked:{
-					greaterthan: <span class="hljs-string">'2014-01-01'</span>, 
+					greaterthanorequals: firstday, 
 					lessthanorequals: lastday
 				}
 			}
@@ -333,8 +346,26 @@
 			}
 		);
 	}); 
-}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Expose private functions through private API “_” for unit testing</p>
 
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports._padZero = padZero; 
+<span class="hljs-built_in">module</span>.exports._padMiliSecs = padMiliSecs;
+<span class="hljs-built_in">module</span>.exports._convert = convert;
+<span class="hljs-built_in">module</span>.exports._flatten = flatten; 
+<span class="hljs-built_in">module</span>.exports._formatDate = formatDate; 
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">formatDate</span><span class="hljs-params">(date)</span></span>{
 	<span class="hljs-keyword">var</span> hr = date.getHours(),
@@ -348,14 +379,15 @@
 			padZero(hr) +<span class="hljs-string">':'</span>+ 
 			padZero(min) + <span class="hljs-string">':'</span> + 
 			padZero(secs) + <span class="hljs-string">'.'</span> + 
-			padMiliSesc(milSecs) + <span class="hljs-string">'Z'</span>;
+			padMiliSecs(milSecs) + <span class="hljs-string">'Z'</span>;
 }
+
 
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">padZero</span><span class="hljs-params">(num)</span></span>{
 	<span class="hljs-keyword">return</span> <span class="hljs-built_in">parseInt</span>(num, <span class="hljs-number">10</span>) &lt; <span class="hljs-number">10</span> ? <span class="hljs-string">"0"</span> + num : num; 
 }
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">padMiliSesc</span><span class="hljs-params">(num)</span></span>{
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">padMiliSecs</span><span class="hljs-params">(num)</span></span>{
 	<span class="hljs-keyword">var</span> returnVal = <span class="hljs-string">""</span>; 
 	num = <span class="hljs-built_in">parseInt</span>(num, <span class="hljs-number">10</span>);
 	<span class="hljs-keyword">if</span>(num &lt; <span class="hljs-number">100</span>){

@@ -27,15 +27,27 @@ var when = require('when'),
 	//For printing pretty tables in the console
 	Table = require('cli-table'),
 	//For iterating over arrays/objects
-	_ = require('lodash-node'); 
+	_ = require('lodash-node'), 
+
+	//*TODO:Break out the console into an evented obejct.*
+	events = require('events'),
+	eventEmitter = new events.EventEmitter();
 
 //Custom extensions for integrating with completers
 require('./lib/cli-table-extensions');
 
 process.on ("SIGINT", function(){
-  //gracefully handle shutdown via Ctlr+C
-  console.log('goodbye'.blue.inverse);
-  process.exit ();
+	//gracefully handle shutdown via Ctlr+C
+ 	eventEmitter.emit('quit');
+});
+
+eventEmitter.on('quit', function(){
+	console.log('goodbye'.cyan.inverse);
+ 	process.exit();
+});
+
+eventEmitter.on('start', function(){
+	console.log('Press Ctrl+C to quit at any time.'.cyan.underline.inverse);
 });
 
 
@@ -54,113 +66,75 @@ var m_prefs = {
 //A time entry object
 var m_timeEntry = {}; 
 var m_resource = {}; 
-var m_projTable = null; 
 
-console.log('Press Ctrl+C to quit at any time.'.cyan.underline.inverse);
 
-//Read the cached file containing the username/password
-readFile('prefs.json')
-.then(function (data) {
-	//If we have the data, use it. If not we'll have to prompt the user to enter it.
-	if(data){
-		m_prefs = data; 
-	}else{
-		//Get the username
-		return read({ prompt: 'Username: '})
-		.then(function(input){
-			m_prefs.username = input; 
+function mainLoop(){
 
-			//Get the password
-			return read({ prompt: 'Password: ', silent: true });
-		})
-		.then(function(input){
-			m_prefs.password = input; 
+	eventEmitter.emit('start');
 
-			return when.promise(function(resolve, reject, notify){
-				askQuestion(resolve, 'Would you like me to remember that (plain text storage)');
-			}); 
-		})
-		.then(function (input) {
-			//If they choose to remember then write the file out.
-			if(input === '1'){
-				return writeFile('prefs.json', m_prefs);
-			}
-		});
-	}
-})
-.then(function(){
+	//Read the cached file containing the username/password
+	readFile('prefs.json')
+	.then(loadPreferencesOrPromptUser)
+	.then(function(){
 
-	console.log('Connecting...'.green.inverse);
-	return autotask.connect(url, m_prefs.username, m_prefs.password); 
-})
-//Get information on our usage stats. 
-.then(autotask.getThresholdAndUsageInfo) 
-.then(function(data){
-	console.log(data.yellow);
+		console.log('Connecting...'.green.inverse);
+		return autotask.connect(url, m_prefs.username, m_prefs.password); 
+	})
+	//Get information on our usage stats. 
+	.then(autotask.getThresholdAndUsageInfo) 
+	.then(function(data){
+		console.log(data.yellow);
 
-	//Get information about the user that logged in.
-	return autotask.getResources(m_prefs.username); 
-})
-.then(function(resources){
-	m_resource = resources && resources.length === 1 ? resources[0]: null;
-	if(m_resource === null){
-		console.log('Could not find that user.');
-		process.exit(); 
-	} 
-	console.log(('Welcome ' + m_resource.FirstName).cyan.inverse);
+		//Get information about the user that logged in.
+		return autotask.getResources(m_prefs.username); 
+	})
+	.then(function(resources){
+		m_resource = resources && resources.length === 1 ? resources[0]: null;
+		if(m_resource === null){
+			console.log('Could not find that user.');
+			process.exit(); 
+		} 
+		console.log(('Welcome ' + m_resource.FirstName).cyan.inverse);
 
-	//Get the resource roles. 
-	return autotask.getResourceRole(m_resource.id); 
-})
-.then(function(resourceRole){
-	//*TODO: This is not returning a single role, but a collection of roles. *
-	m_resource.RoleId = resourceRole.RoleID;
+		//Get the resource roles. 
+		return autotask.getResourceRole(m_resource.id); 
+	})
+	.then(function(resourceRole){
+		//*TODO: This is not returning a single role, but a collection of roles. *
+		m_resource.RoleId = resourceRole.RoleID;
 
-	console.log('loading SRS data...'.green.inverse);
-	//Get SRS infomation so we can query for projects. 
-	return autotask.getAccounts('SRS');
-})
-.then(function(accounts){
-	console.log('loading [Dev-Eng] projects...'.green.inverse);
+		console.log('loading SRS data...'.green.inverse);
+		//Get SRS infomation so we can query for projects. 
+		return autotask.getAccounts('SRS');
+	})
+	.then(function(accounts){
+		console.log('loading [Dev-Eng] projects...'.green.inverse);
 
-	//Enter main loop for entering time.
-	return when.promise(function(resolve, reject, notify){
-		timeEntryLoop(resolve, accounts);
-	}); 
+		//Enter main loop for entering time.
+		return when.promise(function(resolve, reject, notify){
+			timeEntryLoop(resolve, accounts);
+		}); 
 
-})
-.then(function(){
-	console.log('goodbye'.blue.inverse);
-});
+	})
+	.then(function(){
+		eventEmitter.emit('quit');
+	});
+
+}
 
 //##Time entry loop
 //Iterate over this loop until the user is done entering his time.
 function timeEntryLoop(resolve, accounts){
 
-	//Get the available projects. This will be cached after the first hit.
-	getProjects(accounts, m_projTable)
-	.then(function(projects){
-		m_projTable = projects;
-
-		//Write out the resulting table
-		console.log(m_projTable.toString()); 
-
-		return read({ prompt: 'To make a time entry please enter an id from an above project: ', completer: m_projTable.getCompleter(0)});
-	})
-	.then(function (input) {
-		//Get the task list based on the user's input
-		return autotask.getTasks(input); 
+	when.promise(function(resolve, reject, notify){
+		getTaskIdLoop(resolve, accounts);
 	})
 	.then(function(tasks){
-		//*TODO: Handle no tasks returned*
-		var taskArray = _.map(tasks, function(task) { return [task.id, task.Title]; });
+		console.log(tasks.toString());
 
-		var table = new Table({ head: ['id', 'name'] });
-		table.push.apply(table, taskArray);
-
-		console.log(table.toString());
-
-		return read({ prompt: 'To make a time entry please enter an id from an above task: ', completer: table.getCompleter(0)});
+		return when.promise(function(resolve, reject, notify){
+			getId(resolve, 'To make a time entry please enter an id from an above task: ', tasks.getCompleter(0));
+		}); 
 	})
 	.then(function (taskId) {
 		//Begin to build our time entry object. Not sure how to accomplish this without a global yet.
@@ -217,34 +191,151 @@ function timeEntryLoop(resolve, accounts){
 }
 
 //Get the [Dev-Eng] projects, but first check if we've already retrieved them
-function getProjects(accounts, projectTable){
-	return when.promise(function(resolve, reject, notify){
-		
-		if(projectTable){
-			resolve(projectTable);
-		}else{
-			autotask.getProjects(accounts[0].id, '[Dev-Eng]')
-			.then(function(projects){
-				var projArray = _.map(projects, function(project) { return [project.id, project.ProjectName]; });
+var getProjects = (function(){
 
-				projectTable = new Table({ head: ['id', 'name'] });
-				projectTable.push.apply(projectTable, projArray);
+	//Cache the project table incase of multiple time entries.
+	var projectTable = null; 
 
-				resolve(projectTable);
-			});
+	return function(accountId, force){
+
+		if(force){
+			projectTable = null; 
 		}
-	}); 
+
+		return when.promise(function(resolve, reject, notify){
+			
+			if(projectTable){
+				resolve(projectTable);
+			}else{
+				autotask.getProjects(accountId, '[Dev-Eng]')
+				.then(function(projects){
+					var projArray = _.map(projects, function(project) { return [project.id, project.ProjectName]; });
+
+					projectTable = new Table({ head: ['id', 'name'] });
+					projectTable.push.apply(projectTable, projArray);
+
+					resolve(projectTable);
+				});
+			}
+		}); 
+	};
+})(); 
+
+
+var getTasks = (function(){
+
+	//Cache of tasks already returned from autotask
+	var tasksTables = {}; 
+
+	return function(projectId, force){
+
+		if(force){
+			delete tasksTables[projectId]; 
+		}
+
+		return when.promise(function(resolve, reject, notify){
+			
+			if(tasksTables[projectId]){
+				resolve(tasksTables[projectId]);
+			}else{
+				autotask.getTasks(projectId)
+				.then(function(tasks){
+
+					if(tasks && tasks.length > 0){
+
+						var taskArray = _.map(tasks, function(task) { return [task.id, task.Title]; });
+
+						tasksTables[projectId] = new Table({ head: ['id', 'name'] });
+						tasksTables[projectId].push.apply(tasksTables[projectId], taskArray);
+
+						resolve(tasksTables[projectId]);
+					}else{
+						resolve();
+					}
+
+				});
+			}
+		}); 
+	};
+})(); 
+
+//Iterate until we find a task ID
+function getTaskIdLoop(resolve, accounts){
+	getProjects(accounts[0].id)
+	.then(function(projects){
+
+		//Write out the resulting table
+		console.log(projects.toString()); 
+
+		return when.promise(function(resolve, reject, notify){
+			getId(resolve, 'To make a time entry please enter an id from an above project: ', projects.getCompleter(0));
+		}); 
+
+	})
+	.then(getTasks)
+	.then(function(tasks){
+		if(tasks){
+			resolve(tasks);
+		}else{
+			console.log('No tasks were found, please enter another ID'.red.inverse);
+			getTaskIdLoop(resolve, accounts);
+		}
+	});
+}
+
+//Use the preference data we already have or prompt the user for his username/password
+function loadPreferencesOrPromptUser(data) {
+	//If we have the data, use it. If not we'll have to prompt the user to enter it.
+	if(data){
+		m_prefs = data; 
+	}else{
+		//Get the username
+		return read({ prompt: 'Username: '})
+		.then(function(input){
+			m_prefs.username = input; 
+
+			//Get the password
+			return read({ prompt: 'Password: ', silent: true });
+		})
+		.then(function(input){
+			m_prefs.password = input; 
+
+			return when.promise(function(resolve, reject, notify){
+				askQuestion(resolve, 'Would you like me to remember that (plain text storage)');
+			}); 
+		})
+		.then(function (input) {
+			//If they choose to remember then write the file out.
+			if(input === '1'){
+				return writeFile('prefs.json', m_prefs);
+			}
+		});
+	}
+}
+
+
+function getId(resolve, prompt, completer){
+	read({ prompt: prompt, completer: completer})
+	.then(function(input){
+		var id = parseInt(input, 10);
+		if(!isNaN(id) && id > 0){
+			resolve(id); 
+		}else{
+			console.log('You must enter a number'.red.inverse);
+			getId(resolve, prompt, completer);
+		}
+	});
 }
 
 //Prompts for hours and verifies they are correct, otherwise re-prompts.
 function getHours(resolve){
 	 read({ prompt: 'How much time did you spend: '})
 	.then(function(input){
-		var time = parseInt(input, 10);
+		var time = parseFloat(input, 10).toFixed(2);
 		if(time > 0 && time <= 24){
 			resolve(time); 
 		}else{
-			console.log('Time must be > 0 and <= 24');
+			console.log('Time must be > 0 and <= 24'.red.inverse);
 			getHours(resolve);
 		}
 	});
@@ -257,7 +348,7 @@ function getComment(resolve){
 		if(input.trim() !== ''){
 			resolve(input); 
 		}else{
-			console.log('Comments are not optional').
+			console.log('Comments are not optional'.red.inverse);
 			getComment(resolve);
 		}
 	});
@@ -273,7 +364,7 @@ function askQuestion(resolve, question){
 				resolve(input);
 				break;
 			default: 
-				console.log('Please enter 0 for no and 1 for yes.');
+				console.log('Please enter 0 for no and 1 for yes.'.red.inverse);
 				askQuestion(resolve, question);
 		}
 	});
@@ -304,3 +395,5 @@ function readFile(fname){
 		});
 	}); 
 }
+
+mainLoop();
