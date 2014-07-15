@@ -6,7 +6,7 @@ A library that wraps the [Autotask SOAP API](https://www.autotask.net/help/conte
 
 1. Install the [node.js](http://nodejs.org/) runtime
 1. Install [grunt-cli](http://gruntjs.com/getting-started): (terminal/console) `npm install -g grunt-cli` (enter)
-1. Clone this repositiory to your computer or [download the release](https://github.com/BrandonBoone/Autotask.js/archive/v.0.0.2.zip). 
+1. Clone this repositiory to your computer or [download the release](https://github.com/BrandonBoone/Autotask.js/archive/v0.0.2.zip). 
 1. In the terminal/console, navigate to the repository directory and type `npm install` (enter)
 1. then type `grunt dev` (enter)
 
