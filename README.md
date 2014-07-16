@@ -17,5 +17,5 @@ A library that wraps the [Autotask SOAP API](https://www.autotask.net/help/conte
 
 ###Annotated source code
 
- - [app.js](http://htmlpreview.github.io/?https://rawgithub.com/BrandonBoone/Autotask.js/blob/master/docs/app.html)
- - [autotask.js](http://htmlpreview.github.io/?https://rawgithub.com/BrandonBoone/Autotask.js/blob/master/docs/autotask.html)
+ - [app.js](http://htmlpreview.github.io/?https://github.com/BrandonBoone/Autotask.js/blob/master/docs/app.html)
+ - [autotask.js](http://htmlpreview.github.io/?https://github.com/BrandonBoone/Autotask.js/blob/master/docs/autotask.html)
