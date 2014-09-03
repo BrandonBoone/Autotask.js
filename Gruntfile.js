@@ -4,7 +4,7 @@
         jshint: {
             dev: {
                 files: {
-                    src: ['lib/**/*.js', 'app.js']
+                    src: 'autotask.js'
                 }
             },
             options: {

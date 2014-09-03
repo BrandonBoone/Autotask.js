@@ -1,4 +1,4 @@
-<queryxml version="1.0">
+<queryxml>
 	{{~#each this ~}} {{!Entity}}
 		<entity>{{@key}}</entity><query>
 		{{~#each this ~}}{{!Array of fields}}

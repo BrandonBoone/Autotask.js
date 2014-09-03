@@ -55,11 +55,13 @@ module.exports.getProjects = function(accountId, beginswith){
 				AccountID: {
 					equals: accountId
 				}
-			}, {
+			}, 
+			{
 				CompletedPercentage: {
 					lessthan: 100
 				}
-			}, {
+			}, 
+			{
 				ProjectName: {
 					beginswith: beginswith
 				}
@@ -92,7 +94,7 @@ module.exports.getResourceRole = function(resourceId){
 	return query(m_client, {
 		ResourceRole:[{
 			ResourceID: {
-				isnotnull:resourceId
+				equals:resourceId
 			}
 		}]
 	}); 
@@ -155,9 +157,6 @@ module.exports.getTimeEntries = function(resourceId){
 
 	var firstday = formatDate(new Date(curr.setDate(first)));
 	var lastday = formatDate(new Date(curr.setDate(last)));
-	//console.log(firstday);
-	//console.log(lastday);
-
 
 	return query(m_client, {
 		TimeEntry: [
@@ -177,12 +176,63 @@ module.exports.getTimeEntries = function(resourceId){
 	}); 
 };
 
+module.exports.getEntityInfo = function(fieldName){
+	return when.promise(function(resolve, reject, notify){
+		m_client.ATWS.ATWSSoap.getEntityInfo(
+			{}, 
+			function(err, result) {
+				err = err ? err : (result && result.queryResult && result.queryResult.ReturnCode === -1 ? result.queryResult.Errors : null);
+				if(err){
+					reject(err);
+				}else{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
 module.exports.getFieldInfo = function(fieldName){
 	return when.promise(function(resolve, reject, notify){
 		m_client.ATWS.ATWSSoap.GetFieldInfo(
 			{
 				psObjectType: fieldName
 			}, function(err, result) {
+				err = err ? err : (result && result.queryResult && result.queryResult.ReturnCode === -1 ? result.queryResult.Errors : null);
+				if(err){
+					reject(err);
+				}else{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
+module.exports.getWsdlVersion = function(){
+	return when.promise(function(resolve, reject, notify){
+		m_client.ATWS.ATWSSoap.GetWsdlVersion(
+			{}, 
+			function(err, result) {
+				err = err ? err : (result && result.queryResult && result.queryResult.ReturnCode === -1 ? result.queryResult.Errors : null);
+				if(err){
+					reject(err);
+				}else{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
+module.exports.getZoneInfo = function(username){
+return when.promise(function(resolve, reject, notify){
+		m_client.ATWS.ATWSSoap.getZoneInfo(
+			{
+				UserName: username
+			}, 
+			function(err, result) {
+				err = err ? err : (result && result.queryResult && result.queryResult.ReturnCode === -1 ? result.queryResult.Errors : null);
 				if(err){
 					reject(err);
 				}else{
@@ -194,8 +244,7 @@ module.exports.getFieldInfo = function(fieldName){
 };
 
 
-
-module.exports.createTimeEntry = function(resourceId, roleId, time, comment, taskId){
+module.exports.createTimeEntry = function(resourceId, roleId, time, comment, taskId, allocationCode){
 	return when.promise(function(resolve, reject, notify){
 		m_client.ATWS.ATWSSoap.create(
 			{
@@ -207,16 +256,17 @@ module.exports.createTimeEntry = function(resourceId, roleId, time, comment, tas
 						TaskID: taskId, 
 						DateWorked: formatDate(new Date()),
 						ResourceID: resourceId,
-						RoleID: 29683475, //Develper
+						RoleID: roleId, 
 						Type: 6, 
 						HoursWorked: time, 
 						SummaryNotes: comment,
-						AllocationCodeID: 30776677,// Development Billable
-						InternalAllocationCodeID: 30776677
+						AllocationCodeID: allocationCode,
+						InternalAllocationCodeID: allocationCode
 					
 					}
 				}]
 			}, function(err, result) {
+				err = err ? err : (result && result.queryResult && result.queryResult.ReturnCode === -1 ? result.queryResult.Errors : null);
 				if(err){
 					reject(err);
 				}else{
@@ -236,6 +286,7 @@ function query(client, obj){
 		client.ATWS.ATWSSoap.query({
 				sXML: templates["templates/query.hbr"](obj)
 			}, function(err, result) {
+				err = err ? err : (result && result.queryResult && result.queryResult.ReturnCode === -1 ? result.queryResult.Errors : null);
 				if(err){
 					reject(err);
 				}else{

@@ -10,12 +10,7 @@ A library that wraps the [Autotask SOAP API](https://www.autotask.net/help/conte
 1. In the terminal/console, navigate to the repository directory and type `npm install` (enter)
 1. then type `grunt dev` (enter)
 
-###Running the driver
-
-1. In the terminal/console navigate to the repository directory 
-1. type: `node app.js` (enter)
 
 ###Annotated source code
 
- - [app.js](http://htmlpreview.github.io/?https://github.com/BrandonBoone/Autotask.js/blob/master/docs/app.html)
  - [autotask.js](http://htmlpreview.github.io/?https://github.com/BrandonBoone/Autotask.js/blob/master/docs/autotask.html)
