@@ -5,9 +5,7 @@
 //##Current Implementation
 // - Allow the user to enter time related to projects
 // - Allow the user to query any of the autotask objects. (conditions are not currently implemented)
-//
-//##Up Next
-// - Allow the user to enter time against general tasks. 
+
 
 	//For making SOAP requests to Autotask
 var soap = require('soap'),

@@ -28,10 +28,6 @@
 <li>Allow the user to enter time related to projects</li>
 <li>Allow the user to query any of the autotask objects. (conditions are not currently implemented)</li>
 </ul>
-<h2 id="up-next">Up Next</h2>
-<ul>
-<li>Allow the user to enter time against general tasks. </li>
-</ul>
 
             </div>
             
@@ -144,11 +140,13 @@
 				AccountID: {
 					equals: accountId
 				}
-			}, {
+			}, 
+			{
 				CompletedPercentage: {
 					lessthan: <span class="hljs-number">100</span>
 				}
-			}, {
+			}, 
+			{
 				ProjectName: {
 					beginswith: beginswith
 				}
@@ -181,7 +179,7 @@
 	<span class="hljs-keyword">return</span> query(m_client, {
 		ResourceRole:[{
 			ResourceID: {
-				isnotnull:resourceId
+				equals:resourceId
 			}
 		}]
 	}); 
@@ -243,23 +241,7 @@
 	<span class="hljs-keyword">var</span> last = first + <span class="hljs-number">7</span>; <span class="hljs-comment">// last day is the first day + 6 (+7 since using 0000 time)</span>
 
 	<span class="hljs-keyword">var</span> firstday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(first)));
-	<span class="hljs-keyword">var</span> lastday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(last)));</pre></div></div>
-            
-        </li>
-        
-        
-        <li id="section-7">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
-              </div>
-              <p>console.log(firstday);
-console.log(lastday);</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre>
+	<span class="hljs-keyword">var</span> lastday = formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(curr.setDate(last)));
 
 	<span class="hljs-keyword">return</span> query(m_client, {
 		TimeEntry: [
@@ -279,12 +261,63 @@ console.log(lastday);</p>
 	}); 
 };
 
+<span class="hljs-built_in">module</span>.exports.getEntityInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(fieldName)</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		m_client.ATWS.ATWSSoap.getEntityInfo(
+			{}, 
+			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				err = err ? err : (result &amp;&amp; result.queryResult &amp;&amp; result.queryResult.ReturnCode === -<span class="hljs-number">1</span> ? result.queryResult.Errors : <span class="hljs-literal">null</span>);
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
 <span class="hljs-built_in">module</span>.exports.getFieldInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(fieldName)</span></span>{
 	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
 		m_client.ATWS.ATWSSoap.GetFieldInfo(
 			{
 				psObjectType: fieldName
 			}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				err = err ? err : (result &amp;&amp; result.queryResult &amp;&amp; result.queryResult.ReturnCode === -<span class="hljs-number">1</span> ? result.queryResult.Errors : <span class="hljs-literal">null</span>);
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getWsdlVersion = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span></span>{
+	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		m_client.ATWS.ATWSSoap.GetWsdlVersion(
+			{}, 
+			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				err = err ? err : (result &amp;&amp; result.queryResult &amp;&amp; result.queryResult.ReturnCode === -<span class="hljs-number">1</span> ? result.queryResult.Errors : <span class="hljs-literal">null</span>);
+				<span class="hljs-keyword">if</span>(err){
+					reject(err);
+				}<span class="hljs-keyword">else</span>{
+					resolve(result);	
+				}
+			}
+		);
+	}); 
+};
+
+<span class="hljs-built_in">module</span>.exports.getZoneInfo = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(username)</span></span>{
+<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
+		m_client.ATWS.ATWSSoap.getZoneInfo(
+			{
+				UserName: username
+			}, 
+			<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				err = err ? err : (result &amp;&amp; result.queryResult &amp;&amp; result.queryResult.ReturnCode === -<span class="hljs-number">1</span> ? result.queryResult.Errors : <span class="hljs-literal">null</span>);
 				<span class="hljs-keyword">if</span>(err){
 					reject(err);
 				}<span class="hljs-keyword">else</span>{
@@ -296,8 +329,7 @@ console.log(lastday);</p>
 };
 
 
-
-<span class="hljs-built_in">module</span>.exports.createTimeEntry = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resourceId, roleId, time, comment, taskId)</span></span>{
+<span class="hljs-built_in">module</span>.exports.createTimeEntry = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resourceId, roleId, time, comment, taskId, allocationCode)</span></span>{
 	<span class="hljs-keyword">return</span> when.promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject, notify)</span></span>{
 		m_client.ATWS.ATWSSoap.create(
 			{
@@ -309,16 +341,17 @@ console.log(lastday);</p>
 						TaskID: taskId, 
 						DateWorked: formatDate(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>()),
 						ResourceID: resourceId,
-						RoleID: <span class="hljs-number">29683475</span>, <span class="hljs-comment">//Develper</span>
+						RoleID: roleId, 
 						Type: <span class="hljs-number">6</span>, 
 						HoursWorked: time, 
 						SummaryNotes: comment,
-						AllocationCodeID: <span class="hljs-number">30776677</span>,<span class="hljs-comment">// Development Billable</span>
-						InternalAllocationCodeID: <span class="hljs-number">30776677</span>
+						AllocationCodeID: allocationCode,
+						InternalAllocationCodeID: allocationCode
 					
 					}
 				}]
 			}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				err = err ? err : (result &amp;&amp; result.queryResult &amp;&amp; result.queryResult.ReturnCode === -<span class="hljs-number">1</span> ? result.queryResult.Errors : <span class="hljs-literal">null</span>);
 				<span class="hljs-keyword">if</span>(err){
 					reject(err);
 				}<span class="hljs-keyword">else</span>{
@@ -338,6 +371,7 @@ console.log(lastday);</p>
 		client.ATWS.ATWSSoap.query({
 				sXML: templates[<span class="hljs-string">"templates/query.hbr"</span>](obj)
 			}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, result)</span> </span>{
+				err = err ? err : (result &amp;&amp; result.queryResult &amp;&amp; result.queryResult.ReturnCode === -<span class="hljs-number">1</span> ? result.queryResult.Errors : <span class="hljs-literal">null</span>);
 				<span class="hljs-keyword">if</span>(err){
 					reject(err);
 				}<span class="hljs-keyword">else</span>{
@@ -351,11 +385,11 @@ console.log(lastday);</p>
         </li>
         
         
-        <li id="section-8">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>Expose private functions through private API “_” for unit testing</p>
 
