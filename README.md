@@ -39,7 +39,6 @@ autotask.connect(url, username, password)
 	return autotask.getAccounts('YourAccountName');
 })
 .then(function(accounts){
-	//*TODO: This is not returning a single role, but a collection of roles. *
 	console.log(accounts); 
 });
 
