@@ -14,7 +14,7 @@ var soap = require('soap'),
 	//For converting an Object Literal into a Autotask Query XML.
 	handlebars = require('handlebars'),
 	//The pre-complied handlebars templates.
-	templates = require('./templates')(handlebars);
+	templates = require('./lib/templates')(handlebars);
 
 
 var m_client; 
