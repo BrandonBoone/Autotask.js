@@ -21,7 +21,7 @@
             },
             release: {
                 files: {
-                    "lib/templates.js": ["templates/*.hrb"]
+                    "lib/templates.js": ["templates/*.hbr"]
                 }
             },
             options: {
