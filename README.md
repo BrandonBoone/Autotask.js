@@ -8,7 +8,7 @@ A library that wraps the [Autotask SOAP API](https://www.autotask.net/help/conte
 
 ```javascript
 
-	//Promise/A+ implementation. See: http://promises-aplus.github.io/promises-spec/
+//Promise/A+ implementation. See: http://promises-aplus.github.io/promises-spec/
 var when = require('when'), 
 	autotask = require('./lib/autotask'); 
 
