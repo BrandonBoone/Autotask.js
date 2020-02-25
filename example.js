@@ -1,6 +1,6 @@
 //Promise/A+ implementation. See: http://promises-aplus.github.io/promises-spec/
 var when = require('when'), 
-	autotask = require('./lib/autotask'); 
+	autotask = require('./autotask'); 
 
 //TODO: This needs to be updated based on a call to: getZoneInfo()
 var url = 'https://webservices3.autotask.net/atservices/1.5/atws.wsdl',
